@@ -1,0 +1,92 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-legal-backend
+  profiles:
+    active: local
+  datasource:
+    url: ${MYSQL_JDBC_URL:jdbc:mysql://localhost:3306/ai_legal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+admin:
+  default-password: ${ADMIN_DEFAULT_PASSWORD}
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+embedding:
+  api-base-url: ${EMBEDDING_API_BASE_URL:}
+  api-key: ${EMBEDDING_API_KEY}
+  model: ${EMBEDDING_MODEL:embedding-3}
+  dimensions: ${EMBEDDING_DIMENSIONS:2048}
+
+# Runtime LLM (3B-1): DeepSeek V4 Pro (deepseek-v4-pro), non-streaming, thinking disabled,
+# grounded-answer generation. Secret from DEEPSEEK_API_KEY env / application-local.yml
+# (never embedding.api-key — DeepSeek key is independent of the Zhipu embedding key).
+llm:
+  base-url: ${LLM_API_BASE_URL:https://api.deepseek.com}
+  api-key: ${DEEPSEEK_API_KEY}
+  model: ${LLM_MODEL:deepseek-v4-pro}
+  temperature: ${LLM_TEMPERATURE:0.2}
+  max-tokens: ${LLM_MAX_TOKENS:2048}
+  timeout-seconds: ${LLM_TIMEOUT_SECONDS:60}
+  thinking: ${LLM_THINKING:disabled}
+
+# Query Understanding (4A): short structured output, short timeout.
+# Runs BEFORE Basic RAG; 20s (not 60s) keeps QU + RAG + Answer within the 90s
+# frontend consult timeout. DeepSeek V4 Pro, thinking disabled, json_object.
+query-understanding:
+  base-url: ${LLM_API_BASE_URL:https://api.deepseek.com}
+  api-key: ${DEEPSEEK_API_KEY}
+  model: ${QU_MODEL:deepseek-v4-pro}
+  temperature: ${QU_TEMPERATURE:0.1}
+  max-tokens: ${QU_MAX_TOKENS:512}
+  timeout-seconds: ${QU_TIMEOUT_SECONDS:20}
+  thinking: ${QU_THINKING:disabled}
+
+# Case Fact Extraction (4B): fixed-JSON structured extraction from saved case records.
+# temperature 0.1 (fact organization), thinking disabled, json_object; failure must never
+# overwrite existing extraction_json. DeepSeek V4 Pro.
+# CASE_EXT_API_BASE_URL is an independent env override (used by fault-injection tests).
+case-extraction:
+  base-url: ${CASE_EXT_API_BASE_URL:https://api.deepseek.com}
+  api-key: ${DEEPSEEK_API_KEY}
+  model: ${CASE_EXT_MODEL:deepseek-v4-pro}
+  temperature: ${CASE_EXT_TEMPERATURE:0.1}
+  max-tokens: ${CASE_EXT_MAX_TOKENS:4096}
+  timeout-seconds: ${CASE_EXT_TIMEOUT_SECONDS:60}
+  thinking: ${CASE_EXT_THINKING:disabled}
+
+# Document Generation (5B): LLM drafts ONLY factsDraft/reasoningDraft; Java fixed
+# templates assemble the full document. temperature 0.1 (fact drafting), thinking
+# disabled, json_object. max_tokens 12288 (two fields can reach tens of thousands of
+# CJK chars; 4096 would truncate at the provider and produce invalid JSON), 90s timeout.
+# DeepSeek V4 Pro.
+# DOC_GEN_API_BASE_URL is an independent env override (used by fault-injection tests).
+document-generation:
+  base-url: ${DOC_GEN_API_BASE_URL:https://api.deepseek.com}
+  api-key: ${DEEPSEEK_API_KEY}
+  model: ${DOC_GEN_MODEL:deepseek-v4-pro}
+  temperature: ${DOC_GEN_TEMPERATURE:0.1}
+  max-tokens: ${DOC_GEN_MAX_TOKENS:12288}
+  timeout-seconds: ${DOC_GEN_TIMEOUT_SECONDS:90}
+  thinking: ${DOC_GEN_THINKING:disabled}
+
+qdrant:
+  base-url: ${QDRANT_BASE_URL:http://localhost:6333}

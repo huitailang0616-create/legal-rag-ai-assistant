@@ -1,0 +1,19 @@
+# 复制为 application-local.yml，再修改复制文件；不要提交真实密钥！
+spring:
+  datasource:
+    username: "YOUR_MYSQL_USERNAME"
+    password: "YOUR_MYSQL_PASSWORD"
+jwt:
+  secret: "YOUR_LONG_RANDOM_JWT_SECRET_AT_LEAST_32_CHARACTERS"
+admin:
+  default-password: "YOUR_SECURE_ADMIN_PASSWORD"
+embedding:
+  api-key: "YOUR_ZHIPU_EMBEDDING_API_KEY"
+llm:
+  api-key: "YOUR_DEEPSEEK_API_KEY"
+query-understanding:
+  api-key: "${llm.api-key}"
+case-extraction:
+  api-key: "${llm.api-key}"
+document-generation:
+  api-key: "${llm.api-key}"

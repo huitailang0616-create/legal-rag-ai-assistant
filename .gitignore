@@ -1,0 +1,44 @@
+# Secrets / local settings
+.env
+.env.*
+!.env.example
+**/application-local.yml
+**/application-*.private.yml
+**/application-*.secret.yml
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dependencies / build outputs
+**/node_modules/
+**/dist/
+**/target/
+**/out/
+**/build/
+**/logs/
+*.log
+*.class
+*.jar
+!backend/.mvn/wrapper/maven-wrapper.jar
+
+# Database / local state
+**/qdrant_data/
+*.sqlite
+*.db
+*.bak
+*.dump
+**/uploads/
+**/data/private/
+
+# Tools, personal materials
+.git/
+.idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db
+ppt-work/
+thesis_rewrite/
+runtime_evidence*/
+*.iml
