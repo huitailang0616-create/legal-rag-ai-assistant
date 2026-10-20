@@ -55,6 +55,23 @@
 并使用向量相似度 0.70 / 关键词匹配 0.20 / 法律领域匹配 0.10 进行加权排序，
 配合检索阈值判定。
 
+## Basic RAG 与 Enhanced RAG 对比
+
+| 维度 | Basic RAG | Enhanced RAG |
+| --- | --- | --- |
+| 查询理解（Query Understanding） | 无，原问题直接检索 | 先做意图/领域判定与结构化理解（4A） |
+| 查询改写（Query Rewrite） | 无 | 依据理解结果改写查询（法律实体约束、同义扩展） |
+| 向量召回范围 | Top10 | Top100 |
+| 混合加权排序 | 相同：向量 0.70 + 关键词 0.20 + 领域匹配 0.10 | 相同 |
+| 参考条款送入 LLM | Top5 | Top5 |
+| 额外开销 | 无 | 每问多一次 LLM 调用（约 20s 超时预算） |
+| 定位 | 基线链路，验证检索下限 | 意图感知链路，应对口语化/指代不明问题 |
+
+两条链路共用同一套向量库、混合排序与命中口径（Reference Article Hit@5），
+差异仅在于检索前的查询处理，因此评测结果可直接对比检索策略本身的影响。
+原项目历史评测显示 Enhanced 链路命中率略低于 Basic（见下文），
+说明查询改写并非总是带来提升，属于值得进一步迭代的真实问题。
+
 ## 目录结构
 
 ```text
@@ -78,6 +95,14 @@ legal-rag-ai-assistant/
 
 固定测试题覆盖劳动争议、房屋租赁、消费者权益三类业务场景，
 每类 10 题；Direct LLM、Basic RAG 和 Enhanced RAG 各运行 30 次，共 90 条记录。
+
+> 测试集依据：30 道题及每题的参考法条人工标注位于
+> `backend/src/main/java/com/ailegal/config/EvaluationQuestionInitializer.java`
+> （L01-L10 劳动争议 / R01-R10 房屋租赁 / C01-C10 消费者权益），
+> 命中指标计算逻辑见 `EvaluationHitMetricTest`。Hit@5 按人工标注的
+> 参考法条（documentName + articleNumber 稳定标识）与检索 Top5 求交集计算。
+> 下表的命中率数值来自原项目评测材料，需在完整知识库与 API 环境
+> 下重新运行才能复现，**本次公开包未重新执行**。
 
 | 方案 | Reference Article Hit@5 |
 | --- | ---: |
